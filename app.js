@@ -8,6 +8,7 @@ const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const r = require('rethinkdb')
 require('rethinkdb-init')(r)
+let connection
 const sha256 = () => require('crypto').createHash('sha256')
 
 const index = require('./routes/index')
@@ -23,23 +24,24 @@ r.init({
   db: 'mydb'}, [
     {
       name: 'users',
-      indexes: ['username']
+      primaryKey: 'username'
     }
   ]
 ).then(function (conn) {
+  connection = conn
   r.conn = conn
   r.conn.use('mydb')
 })
 
-passport.serializeUser(function (user, done) {
-  done(null, user.id)
-})
+passport.serializeUser((user, done) => done(null, user.username))
 
-passport.deserializeUser(function (id, done) {
-  r.table('users').get(id).run(r.conn).then(function (user) {
-    done(null, user)
-  })
-})
+passport.deserializeUser(
+  (username, done) => r
+    .table('users')
+    .get(username)
+    .run(connection)
+    .then(user => done(null, user))
+)
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
@@ -68,7 +70,7 @@ passport.use(new LocalStrategy(
   function (username, password, done) {
     r
     .table('users').filter(r.row('username').eq(username))
-    .run(r.conn, function (err, cur) {
+    .run(connection, function (err, cur) {
       if (err) {
         return done(err)
       }

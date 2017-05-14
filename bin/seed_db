@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+
+let r = require('rethinkdb')
+require('rethinkdb-init')(r)
+const sha256 = () => require('crypto').createHash('sha256')
+
+r
+  .init(
+  {
+    host: 'localhost',
+    port: 28015,
+    db: 'mydb'
+  },
+  [
+    {
+      name: 'users',
+      primaryKey: 'username'
+    }
+  ]
+  )
+  .then(conn => {
+    r
+      .table('users')
+      .insert({
+        username: 'admin',
+        timestamp: Date.now(),
+        password: sha256().update('mypass').digest('hex')
+      })
+      .run(conn)
+      .then(() => {
+        console.log('Successfully inserted 1 record.')
+        process.exit(0)
+      })
+      .error(() => process.exit(2))
+  })
+  .catch(() => process.exit(3))

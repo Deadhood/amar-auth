@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "cross-env DEBUG=amar-auth:* node ./bin/www",
+    "db:prep": "node bin/seed_db"
   },
   "dependencies": {
     "body-parser": "^1.17.1",
@@ -18,5 +19,8 @@
     "rethinkdb": "^2.3.3",
     "rethinkdb-init": "^0.2.2",
     "serve-favicon": "~2.4.2"
+  },
+  "devDependencies": {
+    "cross-env": "^5.0.0"
   }
 }
