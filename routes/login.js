@@ -3,7 +3,10 @@ var router = express.Router()
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  res.render('index', { title: 'Express' })
+  res.render('error', {
+    message: 'Please login to access the admin page',
+    error: {status: 403, stack: '403 Forbidden'}
+  })
 })
 
 module.exports = router

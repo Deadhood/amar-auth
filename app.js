@@ -1,20 +1,21 @@
-var express = require('express')
-var path = require('path')
-var favicon = require('serve-favicon')
-var logger = require('morgan')
-var cookieParser = require('cookie-parser')
-var bodyParser = require('body-parser')
-var passport = require('passport')
-var LocalStrategy = require('passport-local').Strategy
-var r = require('rethinkdb')
+const express = require('express')
+const path = require('path')
+const favicon = require('serve-favicon')
+const logger = require('morgan')
+const cookieParser = require('cookie-parser')
+const bodyParser = require('body-parser')
+const passport = require('passport')
+const LocalStrategy = require('passport-local').Strategy
+const r = require('rethinkdb')
 require('rethinkdb-init')(r)
-var sha1 = require('sha1')
-var rconn
+const sha256 = () => require('crypto').createHash('sha256')
 
-var index = require('./routes/index')
-var users = require('./routes/users')
+const index = require('./routes/index')
+const users = require('./routes/users')
+const admin = require('./routes/admin')
+const login = require('./routes/login')
 
-var app = express()
+const app = express()
 
 r.init({
   host: 'localhost',
@@ -27,8 +28,17 @@ r.init({
   ]
 ).then(function (conn) {
   r.conn = conn
-  rconn = conn
   r.conn.use('mydb')
+})
+
+passport.serializeUser(function (user, done) {
+  done(null, user.id)
+})
+
+passport.deserializeUser(function (id, done) {
+  r.table('users').get(id).run(r.conn).then(function (user) {
+    done(null, user)
+  })
 })
 
 // view engine setup
@@ -52,29 +62,40 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 app.use('/', index)
 app.use('/users', users)
+app.use('/admin', admin)
+app.use('/login', login)
 passport.use(new LocalStrategy(
   function (username, password, done) {
     r
-      .table('users').filter(r.row('username').eq(username))
-      .run(rconn, function (err, cur) {
+    .table('users').filter(r.row('username').eq(username))
+    .run(r.conn, function (err, cur) {
+      if (err) {
+        return done(err)
+      }
+      cur.each(function (err, res) {
         if (err) {
-          return done(err)
+          return done(null, false, { message: 'Incorrect Username.' })
         }
-        cur.each(function (err, res) {
-          if (err) {
-            return done(err)
-          }
-          if (res.password !== sha1(password)) {
-            return done(null, false, { message: 'Incorrect username.' })
-          }
-          return done(null, res)
-        })
+        if (res.password !== sha256().update(password, 'utf8').digest('hex')) {
+          return done(null, false, { message: 'Incorrect Password.' })
+        }
+        return done(null, res)
       })
+    })
   }
 ))
+
+app.post('/login',
+  passport.authenticate('local', {
+    successRedirect: '/admin',
+    failureRedirect: '/login',
+    failureFlash: false
+  })
+)
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  var err = new Error('Not Found')
+  const err = new Error('Not Found')
   err.status = 404
   next(err)
 })
