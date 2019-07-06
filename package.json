@@ -7,7 +7,7 @@
     "db:prep": "node bin/seed_db"
   },
   "dependencies": {
-    "body-parser": "^1.17.1",
+    "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.3",
     "debug": "~2.6.3",
     "express": "~4.15.2",
