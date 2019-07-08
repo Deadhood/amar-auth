@@ -21,6 +21,6 @@
     "serve-favicon": "~2.4.2"
   },
   "devDependencies": {
-    "cross-env": "^5.0.0"
+    "cross-env": "^5.2.0"
   }
 }
