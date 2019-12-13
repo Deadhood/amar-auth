@@ -498,9 +498,9 @@ rethinkdb-init@^0.2.2:
     lodash "^3.7.0"
     q "^1.2.1"
 
-rethinkdb@^2.3.3:
-  version "2.3.3"
-  resolved "https://registry.yarnpkg.com/rethinkdb/-/rethinkdb-2.3.3.tgz#3dc6586e22fa1dabee0d254e64bd0e379fad2f72"
+rethinkdb@^2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/rethinkdb/-/rethinkdb-2.4.1.tgz#0e44306878543d296cd7ae7f24372960362f9d31"
   dependencies:
     bluebird ">= 2.3.2 < 3"
 
